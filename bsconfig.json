@@ -1,0 +1,22 @@
+{
+  "name": "blazeman",
+  "version": "0.1.0",
+  "sources": [
+    {
+      "dir": "src",
+      "subdirs": true
+    },
+    { "dir": "tests", "subdirs": true, "type": "dev" }
+  ],
+  "package-specs": {
+    "module": "commonjs",
+    "in-source": true
+  },
+  "suffix": ".bs.js",
+  "bs-dependencies": [
+    "rescript-nodejs",
+    "@ryyppy/rescript-promise",
+    "rescript-jzon"
+  ],
+  "bs-dev-dependencies": ["rescript-test"]
+}

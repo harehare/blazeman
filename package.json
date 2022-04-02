@@ -1,0 +1,52 @@
+{
+  "name": "blazeman",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "bin": {
+    "bm": "dist/index.js"
+  },
+  "bugs": {
+    "url": "https://github.com/harehare/blazeman/issues"
+  },
+  "scripts": {
+    "clean": "rescript clean -with-deps",
+    "build": "rescript build && node build.js",
+    "watch": "rescript build -w",
+    "run": "node src/Index.bs.js",
+    "test": "npm run build && retest tests/*.bs.js",
+    "emulators": "firebase emulators:start --only firestore",
+    "tracing": "./node_modules/.bin/bstracing",
+    "publish": "npm run test && npm publish --access=public"
+  },
+  "keywords": [
+    "BuckleScript",
+    "cli",
+    "firebase",
+    "firestore"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/harehare/blazeman.git"
+  },
+  "files": [
+    "dist",
+    "js"
+  ],
+  "author": "harehare",
+  "license": "MIT",
+  "homepage": "https://github.com/harehare/blazeman",
+  "devDependencies": {
+    "esbuild": "^0.14.28",
+    "rescript": "^9.1.4",
+    "rescript-test": "^3.2.0"
+  },
+  "dependencies": {
+    "@ryyppy/rescript-promise": "^2.1.0",
+    "console-table-printer": "^2.10.0",
+    "firebase-admin": "^10.0.1",
+    "json-colorizer": "^2.2.2",
+    "json2csv": "^5.0.7",
+    "rescript-jzon": "^1.3.0",
+    "rescript-nodejs": "^14.2.0"
+  }
+}
