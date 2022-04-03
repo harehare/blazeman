@@ -1,6 +1,6 @@
 {
   "name": "blazeman",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "dist/index.js",
   "bin": {
     "bm": "dist/index.js"
@@ -10,7 +10,7 @@
   },
   "scripts": {
     "clean": "rescript clean -with-deps",
-    "build": "rescript build && node build.js",
+    "build": "rescript build && node build.js && terser --compress --mangle -- dist/index.js > dist/index.js2 && mv dist/index.js2 dist/index.js",
     "watch": "rescript build -w",
     "run": "node src/Index.bs.js",
     "test": "npm run build && retest tests/*.bs.js",
@@ -19,7 +19,7 @@
     "publish": "npm run test && npm publish --access=public"
   },
   "keywords": [
-    "BuckleScript",
+    "rescript",
     "cli",
     "firebase",
     "firestore"
@@ -30,7 +30,7 @@
   },
   "files": [
     "dist",
-    "js"
+    ".github"
   ],
   "author": "harehare",
   "license": "MIT",
@@ -47,6 +47,7 @@
     "json-colorizer": "^2.2.2",
     "json2csv": "^5.0.7",
     "rescript-jzon": "^1.3.0",
-    "rescript-nodejs": "^14.2.0"
+    "rescript-nodejs": "^14.2.0",
+    "terser": "^5.12.1"
   }
 }

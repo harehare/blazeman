@@ -9,7 +9,6 @@ blazeman is a command line interface for Cloud Firestore written in Rescript. bl
 To install run
 
 ```
-# Not available yet.
 $ npm install -g blazeman
 ```
 

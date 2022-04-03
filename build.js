@@ -5,7 +5,6 @@ const result = require("esbuild").buildSync({
   entryPoints: ["src/Index.bs.js"],
   outfile,
   platform: "node",
-  target: "node12",
   banner: {
     js: '#!/usr/bin/env node\n"use strict";',
   },

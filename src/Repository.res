@@ -35,13 +35,7 @@ type databaseData =
   | CollectionData(Collection.t)
 
 module Repository: Repository = {
-  let projectId = () => {
-    instanceId()
-    ->InstanceId.app
-    ->InstanceId.FirebaseApp.options
-    ->InstanceId.FirebaseApp.Options.projectId
-  }
-
+  let projectId = () => Firebase.projectId()
   let initialize = () => {
     if Env.credential->NodeJs.Fs.existsSync {
       initializeApp(cert(Env.credential))
