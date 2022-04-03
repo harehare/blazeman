@@ -263,7 +263,7 @@ let main = () => {
   | Help(_) => Help.help->IO.info
   | Invalid(e) => e->IO.error
   | ShowProject => `Active Project: ${Repository.projectId()->IO.cyan->IO.bold}`->IO.info
-  | Version => "0.1.1"->IO.info
+  | Version => "0.1.2"->IO.info
   }->ignore
 }
 
