@@ -25,8 +25,8 @@ let toString = t => {
   | InvalidJson => "Input json is bad format."
   | NotFoundCommand(name) =>
     switch name {
-    | Some(n) => `SUBCOMMAND: ${n} not found.`
-    | None => `SUBCOMMAND not found.`
+    | Some(n) => `Subcommand: ${n} not found.`
+    | None => `Subcommand not found.`
     }
   | NotFoundDocument(path) => `Document ${path->CollectionPath.toString} nof found.`
   | NotFoundCredential => "The json file set to GOOGLE_APPLICATION_CREDENTIALS does not exist."

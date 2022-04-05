@@ -23,6 +23,7 @@ let get =
     "",
     "Usage:"->IO.green,
     "    bm get \"[Collectiotn path]\" [Options]",
+    "    bm get code \"[Collectiotn path]\"",
     "Options:"->IO.green,
     "    -f, --format=<json|table|csv>",
   ]->Js.Array2.joinWith("\n")
@@ -35,6 +36,7 @@ let docs =
     "    bm docs \"[Collectiotn path]\" [Options]",
     "    bm docs \"[Collectiotn path]/[Queries]\" [Options]",
     "    bm docs \"[Collectiotn path]/[Queries]/[Fields|Order by]\" [Options]",
+    "    bm docs code \"[Collectiotn path]/[Queries]/[Fields|Order by]\" [Options]",
     "",
     "Collectiotn path:"->IO.green,
     "    /collection",
@@ -67,6 +69,7 @@ let set =
     "",
     "Usage:"->IO.green,
     "    bm set [Collectiotn path] [Options]",
+    "    bm set code [Collectiotn path] [Options]",
     "",
     "Options:"->IO.green,
     "    -d, --dry-run=<true|false> Skip operations.",
@@ -81,6 +84,7 @@ let update =
     "",
     "Usage:"->IO.green,
     "    bm update [Collectiotn path] [Options]",
+    "    bm update code [Collectiotn path] [Options]",
     "",
     "Options:"->IO.green,
     "    -d, --dry-run=<true|false> Skip operations.",
@@ -95,6 +99,7 @@ let list =
     "",
     "Usage:"->IO.green,
     "    bm list [Collectiotn path]",
+    "    bm list code [Collectiotn path]",
   ]->Js.Array2.joinWith("\n")
 
 let delete =
@@ -103,6 +108,7 @@ let delete =
     "",
     "Usage:"->IO.green,
     "    bm delete [Collectiotn path] [Options]",
+    "    bm delete code [Collectiotn path] [Options]",
     "",
     "Options:"->IO.green,
     "    -d, --dry-run=<true|false> Skip operations.",

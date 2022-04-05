@@ -10,3 +10,5 @@ let unwrap = (limit: t): int => {
   let Limit(l) = limit
   l
 }
+
+let toCode = t => `limit(${t->unwrap->Int.toString})`

@@ -104,6 +104,7 @@ Usage:
     bm docs "[Collectiotn path]" [Options]
     bm docs "[Collectiotn path]/[Queries]" [Options]
     bm docs "[Collectiotn path]/[Queries]/[Fields|Order by]" [Options]
+    bm docs code "[Collectiotn path]/[Queries]/[Fields|Order by]" [Options]
 
 Collectiotn path:
     /collection
@@ -130,7 +131,7 @@ Options:
     -f, --format=<json|table|csv>
 ```
 
-## TODO
+## TODO :construction:
 
 - [ ] Support startAt
 

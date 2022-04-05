@@ -60,4 +60,102 @@ let toString = t => {
   )
 }
 
+let toCode = t => {
+  t
+  ->List.reduce(["db"], (acc, path) =>
+    switch path {
+    | CollectionPath(collectionName) =>
+      acc->Array.concat([`collection('${collectionName->CollectionName.unwrap}')`])
+    | DocPath(docId) => acc->Array.concat([`doc('${docId->DocId.unwrap}')`])
+    | QueryPath(queries) =>
+      acc->Array.concat(
+        queries->Array.reduce([], (acc, v) => {
+          switch v {
+          | Query.EQ(field, value) =>
+            switch value {
+            | Query.Boolean(b) =>
+              acc->Array.concat([`where('${field}', '==', ${b ? "true" : "false"}})`])
+            | Query.Integer(i) =>
+              acc->Array.concat([`where('${field}', '==', ${i->Int.toString}})`])
+            | Query.String(s) => acc->Array.concat([`where('${field}', '==', '${s}'})`])
+            | Query.Float(f) =>
+              acc->Array.concat([`where('${field}', '==', ${f->Float.toString}})`])
+            }
+          | Query.NEQ(field, value) =>
+            switch value {
+            | Query.Boolean(b) =>
+              acc->Array.concat([`where('${field}', '!=', ${b ? "true" : "false"}})`])
+            | Query.Integer(i) =>
+              acc->Array.concat([`where('${field}', '!=', ${i->Int.toString}})`])
+            | Query.String(s) => acc->Array.concat([`where('${field}', '!=', '${s}'})`])
+            | Query.Float(f) =>
+              acc->Array.concat([`where('${field}', '!=', ${f->Float.toString}})`])
+            }
+          | Query.GT(field, value) =>
+            switch value {
+            | Query.Boolean(b) =>
+              acc->Array.concat([`where('${field}', '>', ${b ? "true" : "false"}})`])
+            | Query.Integer(i) => acc->Array.concat([`where('${field}', '>', ${i->Int.toString}})`])
+            | Query.String(s) => acc->Array.concat([`where('${field}', '>', '${s}'})`])
+            | Query.Float(f) => acc->Array.concat([`where('${field}', '>', ${f->Float.toString}})`])
+            }
+          | Query.GTE(field, value) =>
+            switch value {
+            | Query.Boolean(b) =>
+              acc->Array.concat([`where('${field}', '>=', ${b ? "true" : "false"}})`])
+            | Query.Integer(i) =>
+              acc->Array.concat([`where('${field}', '>=', ${i->Int.toString}})`])
+            | Query.String(s) => acc->Array.concat([`where('${field}', '>=', '${s}'})`])
+            | Query.Float(f) =>
+              acc->Array.concat([`where('${field}', '>=', ${f->Float.toString}})`])
+            }
+          | Query.LT(field, value) =>
+            switch value {
+            | Query.Boolean(b) =>
+              acc->Array.concat([`where('${field}', '<', ${b ? "true" : "false"}})`])
+            | Query.Integer(i) => acc->Array.concat([`where('${field}', '<', ${i->Int.toString}})`])
+            | Query.String(s) => acc->Array.concat([`where('${field}', '<', '${s}'})`])
+            | Query.Float(f) => acc->Array.concat([`where('${field}', '<', ${f->Float.toString}})`])
+            }
+          | Query.LTE(field, value) =>
+            switch value {
+            | Query.Boolean(b) =>
+              acc->Array.concat([`where('${field}', '<=', ${b ? "true" : "false"}})`])
+            | Query.Integer(i) =>
+              acc->Array.concat([`where('${field}', '<=', ${i->Int.toString}})`])
+            | Query.String(s) => acc->Array.concat([`where('${field}', '<=', ${s}})`])
+            | Query.Float(f) =>
+              acc->Array.concat([`where('${field}', '<=', ${f->Float.toString}})`])
+            }
+          | Query.Contains(field, value) =>
+            switch value {
+            | Query.Integer(i) =>
+              acc->Array.concat([`where('${field}', 'array-contains', ${i->Int.toString}})`])
+            | Query.String(s) => acc->Array.concat([`where('${field}', 'array-contains', '${s}'})`])
+            | Query.Float(f) =>
+              acc->Array.concat([`where('${field}', 'array-contains', ${f->Float.toString}})`])
+            | _ => acc
+            }
+          | Query.InvalidCondition(_) => acc
+          }
+        }),
+      )
+    | SelectionPath(selections) =>
+      acc->Array.concat(
+        selections
+        ->Selection.orders
+        ->Array.reduce([], (acc, v) => {
+          switch v {
+          | Selection.Asc(Selection.FieldName(name)) => acc->Array.concat([`orderBy('${name}')`])
+          | Selection.Desc(Selection.FieldName(name)) =>
+            acc->Array.concat([`orderBy('${name}', 'desc')`])
+          | _ => acc
+          }
+        }),
+      )
+    }
+  )
+  ->Js.Array2.joinWith(".")
+}
+
 let isEmpty = t => t->List.length == 0

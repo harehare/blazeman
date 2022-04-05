@@ -240,6 +240,7 @@ let main = () => {
 
   switch commands->Command.parse {
   | Get(path, format) => repo->executeGet(~path, ~format)
+
   | Docs(path, format, limit, offset) =>
     repo->executeDocs(
       ~path,
@@ -247,13 +248,18 @@ let main = () => {
       ~limit=limit->Option.getWithDefault(Limit.default),
       ~offset=offset->Option.getWithDefault(Offset.default),
     )
+
   | Set(path, format, json) => repo->executeSet(~path, ~json, ~format)
   | SetDryRun(path, format, json) => repo->executeSetDryRun(~path, ~json, ~format)
+
   | Update(path, format, json) => repo->executeUpdate(~path, ~json, ~format)
   | UpdateDryRun(path, format, json) => repo->executeUpdateDryRun(~path, ~json, ~format)
+
   | List(path) => repo->executeList(path)
+
   | Delete(path) => repo->executeDelete(~path)
   | DeleteDryRun(path, format) => repo->executeDeleteDryRun(~path, ~format)
+
   | Help(Some(Get(_))) => Help.get->IO.info
   | Help(Some(Set(_))) => Help.set->IO.info
   | Help(Some(Docs(_))) => Help.docs->IO.info
@@ -261,9 +267,25 @@ let main = () => {
   | Help(Some(List(_))) => Help.list->IO.info
   | Help(Some(Delete(_))) => Help.delete->IO.info
   | Help(_) => Help.help->IO.info
+
+  | Code(List(None)) =>
+    Array.concatMany([Code.initializeApp, Code.rootList()])->Code.toString->IO.info
+  | Code(List(Some(path))) =>
+    Array.concatMany([Code.initializeApp, Code.listCollection(path)])->Code.toString->IO.info
+  | Code(Docs(path, _, format, offset)) =>
+    Array.concatMany([Code.initializeApp, Code.docs(path, format, offset)])->Code.toString->IO.info
+  | Code(Get(path, _)) =>
+    Array.concatMany([Code.initializeApp, Code.get(path)])->Code.toString->IO.info
+  | Code(Set(path, _, json)) =>
+    Array.concatMany([Code.initializeApp, Code.set(path, json)])->Code.toString->IO.info
+  | Code(Update(path, _, json)) =>
+    Array.concatMany([Code.initializeApp, Code.update(path, json)])->Code.toString->IO.info
+  | Code(Delete(path)) =>
+    Array.concatMany([Code.initializeApp, Code.delete(path)])->Code.toString->IO.info
   | Invalid(e) => e->IO.error
   | ShowProject => `Active Project: ${Repository.projectId()->IO.cyan->IO.bold}`->IO.info
   | Version => "0.1.2"->IO.info
+  | _ => Error.NotFoundCommand(None)->IO.error
   }->ignore
 }
 

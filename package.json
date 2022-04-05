@@ -1,6 +1,6 @@
 {
   "name": "blazeman",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "main": "dist/index.js",
   "bin": {
     "bm": "dist/index.js"

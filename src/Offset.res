@@ -10,3 +10,5 @@ let unwrap = (offset: t): int => {
   let Offset(o) = offset
   o
 }
+
+let toCode = t => `offset(${t->unwrap->Int.toString})`
