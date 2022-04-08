@@ -19,8 +19,7 @@ test("parse docs", () => {
     Command.Docs(
       "/collection1/docId1/collection2/docId2"->CollectionPath.fromString,
       Format.fromString("json"),
-      Some(Limit.fromString("10")),
-      Some(Offset.fromString("20")),
+      Pagination.from(Some(Limit.fromString("10")), Some(Offset.fromString("20")), None),
     ),
   )
 
@@ -29,8 +28,7 @@ test("parse docs", () => {
     Command.Docs(
       "/collection1/docId1/collection2"->CollectionPath.fromString,
       Format.Json,
-      None,
-      None,
+      Pagination.default,
     ),
   )
 })

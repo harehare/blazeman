@@ -16,16 +16,10 @@ let commandEq = (a, b) => {
     path1->CollectionPath.toString == path2->CollectionPath.toString &&
       format1->Format.toString == format2->Format.toString
 
-  | (
-      Command.Docs(path1, format1, limit1, offset1),
-      Command.Docs(path2, format2, limit2, offset2),
-    ) =>
+  | (Command.Docs(path1, format1, pagination1), Command.Docs(path2, format2, pagination2)) =>
     path1->CollectionPath.toString == path2->CollectionPath.toString &&
-    limit1->Option.getWithDefault(Limit.default)->Limit.unwrap ==
-      limit2->Option.getWithDefault(Limit.default)->Limit.unwrap &&
-    offset1->Option.getWithDefault(Offset.default)->Offset.unwrap ==
-      offset2->Option.getWithDefault(Offset.default)->Offset.unwrap &&
-    format1->Format.toString == format2->Format.toString
+    format1->Format.toString == format2->Format.toString &&
+    pagination1->Pagination.toCode == pagination2->Pagination.toCode
 
   | (Command.Set(path1, format1, json1), Command.Set(path2, format2, json2)) =>
     path1->CollectionPath.toString == path2->CollectionPath.toString &&
