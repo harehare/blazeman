@@ -10,6 +10,7 @@ type t =
   | NotFoundDocument(CollectionPath.t)
   | NoRequiredEnv(envName)
   | InvalidQuery(message)
+  | InvalidOption(message)
   | InvalidJson
   | InternalError
   | NotFoundCredential
@@ -23,6 +24,7 @@ let toString = t => {
   | InvalidQuery(message) => `Invalid query: ${message}.`
   | InternalError => "Internal error."
   | InvalidJson => "Input json is bad format."
+  | InvalidOption(message) => `Invalid options: ${message}`
   | NotFoundCommand(name) =>
     switch name {
     | Some(n) => `Subcommand: ${n} not found.`

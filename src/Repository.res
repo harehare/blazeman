@@ -15,8 +15,7 @@ module type Repository = {
   let docs: (
     t,
     ~path: CollectionPath.t,
-    ~offset: int,
-    ~limit: int,
+    ~pagination: Pagination.t,
   ) => Promise.t<Result.t<array<Js.Dict.t<'a>>, Error.t>>
   let get: (t, ~path: CollectionPath.t) => Promise.t<Result.t<Js.Dict.t<'a>, Error.t>>
   let set: (t, ~path: CollectionPath.t, ~json: Js.Json.t) => Promise.t<Result.t<Js.Json.t, Error.t>>
@@ -147,7 +146,7 @@ module Repository: Repository = {
     }
   }
 
-  let docs = (repo, ~path, ~offset, ~limit) => {
+  let docs = (repo, ~path, ~pagination) => {
     if path->List.length == 0 {
       Result.Error(path->Error.NotFoundPath)->Promise.resolve
     } else {
@@ -166,9 +165,25 @@ module Repository: Repository = {
               | _ => c
               }
             })
+          let collection = try switch pagination {
+          | Pagination.Pagination(offset, limit) =>
+            collection
+            ->Collection.offset(offset->Offset.unwrap)
+            ->Collection.limit(limit->Limit.unwrap)
+          | Cursor(startAt) =>
+            switch startAt->StartAt.toArray {
+            | [field1, field2] => collection->Collection.startAfter2(field1, field2)
+            | [field1] => collection->Collection.startAfter(field1)
+            | _ => collection
+            }
+          } catch {
+          | Js.Exn.Error(obj) =>
+            switch Js.Exn.message(obj) {
+            | Some(m) => raise(Error.InvalidOption(m)->RepositoryError)
+            | None => raise(Error.InternalError->RepositoryError)
+            }
+          }
           collection
-          ->Collection.offset(offset)
-          ->Collection.limit(limit)
           ->Collection.get()
           ->Promise.then(qs =>
             Result.Ok(

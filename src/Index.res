@@ -20,9 +20,9 @@ let executeGet = (repo, ~path, ~format) =>
   })
   ->ignore
 
-let executeDocs = (repo, ~path: CollectionPath.t, ~limit, ~offset, ~format) =>
+let executeDocs = (repo, ~path: CollectionPath.t, ~format, ~pagination) =>
   repo
-  ->Repository.docs(~path, ~offset=offset->Offset.unwrap, ~limit=limit->Limit.unwrap)
+  ->Repository.docs(~path, ~pagination)
   ->Promise.then(result => {
     switch result {
     | Result.Ok(ok) =>
@@ -241,13 +241,7 @@ let main = () => {
   switch commands->Command.parse {
   | Get(path, format) => repo->executeGet(~path, ~format)
 
-  | Docs(path, format, limit, offset) =>
-    repo->executeDocs(
-      ~path,
-      ~format,
-      ~limit=limit->Option.getWithDefault(Limit.default),
-      ~offset=offset->Option.getWithDefault(Offset.default),
-    )
+  | Docs(path, format, pagination) => repo->executeDocs(~path, ~format, ~pagination)
 
   | Set(path, format, json) => repo->executeSet(~path, ~json, ~format)
   | SetDryRun(path, format, json) => repo->executeSetDryRun(~path, ~json, ~format)
@@ -272,8 +266,8 @@ let main = () => {
     Array.concatMany([Code.initializeApp, Code.rootList()])->Code.toString->IO.info
   | Code(List(Some(path))) =>
     Array.concatMany([Code.initializeApp, Code.listCollection(path)])->Code.toString->IO.info
-  | Code(Docs(path, _, format, offset)) =>
-    Array.concatMany([Code.initializeApp, Code.docs(path, format, offset)])->Code.toString->IO.info
+  | Code(Docs(path, _, pagination)) =>
+    Array.concatMany([Code.initializeApp, Code.docs(path, pagination)])->Code.toString->IO.info
   | Code(Get(path, _)) =>
     Array.concatMany([Code.initializeApp, Code.get(path)])->Code.toString->IO.info
   | Code(Set(path, _, json)) =>

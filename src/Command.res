@@ -3,7 +3,7 @@ open Belt
 type dryRun = bool
 type rec t =
   | Get(CollectionPath.t, Format.t)
-  | Docs(CollectionPath.t, Format.t, option<Limit.t>, option<Offset.t>)
+  | Docs(CollectionPath.t, Format.t, Pagination.t)
   | Set(CollectionPath.t, Format.t, Js.Json.t)
   | SetDryRun(CollectionPath.t, Format.t, Js.Json.t)
   | Update(CollectionPath.t, Format.t, Js.Json.t)
@@ -24,6 +24,7 @@ let parseOption = (optionString: string) => {
   | list{"--stdin"} => list{("stdin", "true")}
   | list{"--limit", limit} => list{("limit", limit)}
   | list{"--offset", offset} => list{("offset", offset)}
+  | list{"--start-at", startAt} => list{("start-at", startAt)}
   | list{"--dry-run", dryRun} => list{("dry-run", dryRun)}
   | list{"--format", format} => list{("format", format)}
   | list{"--output-file", outputFile} => list{("output-file", outputFile)}
@@ -33,6 +34,7 @@ let parseOption = (optionString: string) => {
   | list{"-l", limit} => list{("limit", limit)}
   | list{"-s", offset} => list{("offset", offset)}
   | list{"-d", dryRun} => list{("dry-run", dryRun)}
+  | list{"-a", startAt} => list{("start-at", startAt)}
   | list{"-f", format} => list{("format", format)}
   | list{"-o", outputFile} => list{("output-file", outputFile)}
   | _ => list{}
@@ -45,24 +47,24 @@ let parse = (argv: list<string>): t => {
   let getInput = rest => {
     let options = rest->getOptions
     let maybeJsonString = switch (options->Js.Dict.get("json"), options->Js.Dict.get("stdin")) {
-    | (Some(json), _) => Some(json)
-    | (_, Some("true")) => Some(IO.inputStdin())
-    | _ => Some(IO.inputStdin())
+    | (Some(json), _) => json->Some
+    | (_, Some("true")) => IO.inputStdin()->Some
+    | _ => IO.inputStdin()->Some
     }
 
     switch maybeJsonString {
-    | Some("") => Result.Error(Error.InvalidJson)
+    | Some("") => Error.InvalidJson->Result.Error
     | Some(jsonString) =>
       try Result.Ok(Js.Json.parseExn(jsonString)) catch {
-      | _ => Result.Error(Error.InvalidJson)
+      | _ => Error.InvalidJson->Result.Error
       }
-    | None => Result.Error(Error.InvalidJson)
+    | None => Error.InvalidJson->Result.Error
     }
   }
 
   switch argv {
-  | list{"get", "help"} => Help(Some(Get(CollectionPath.empty(), Format.Json)))
-  | list{"get", "code", path} => Code(Get(path->CollectionPath.fromString, Format.Json))
+  | list{"get", "help"} => Get(CollectionPath.empty(), Format.Json)->Some->Help
+  | list{"get", "code", path} => Get(path->CollectionPath.fromString, Format.Json)->Code
   | list{"get", path, ...rest} =>
     Get(
       path->CollectionPath.fromString,
@@ -74,34 +76,61 @@ let parse = (argv: list<string>): t => {
     )
 
   | list{"docs"} => Invalid(Error.NotFoundCollectionPath)
-  | list{"docs", "help"} => Help(Some(Docs(CollectionPath.empty(), Format.Json, None, None)))
+  | list{"docs", "help"} =>
+    Docs(CollectionPath.empty(), Format.Json, Pagination.default)->Some->Help
   | list{"docs", "code", path, ...rest} =>
     let options = rest->getOptions
-    Code(
+    switch (
+      options->Js.Dict.get("limit")->Option.map(Limit.fromString),
+      options->Js.Dict.get("offset")->Option.map(Offset.fromString),
+      options->Js.Dict.get("start-at")->Option.map(StartAt.fromString),
+    ) {
+    | (_, Some(_), Some(_)) =>
+      Error.InvalidOption("Only one of limit and start-at can be specified as an option")->Invalid
+    | (Some(_), _, Some(_)) =>
+      Error.InvalidOption("Only one of limit and start-at can be specified as an option")->Invalid
+    | _ =>
       Docs(
         path->CollectionPath.fromString,
         Format.Json,
-        options->Js.Dict.get("limit")->Option.map(Limit.fromString),
-        options->Js.Dict.get("offset")->Option.map(Offset.fromString),
-      ),
-    )
+        Pagination.from(
+          options->Js.Dict.get("limit")->Option.map(Limit.fromString),
+          options->Js.Dict.get("offset")->Option.map(Offset.fromString),
+          options->Js.Dict.get("start-at")->Option.map(StartAt.fromString),
+        ),
+      )->Code
+    }
   | list{"docs", path, ...rest} =>
     let options = rest->getOptions
-    Docs(
-      path->CollectionPath.fromString,
-      options
-      ->Js.Dict.get("format")
-      ->Option.map(Format.fromString)
-      ->Option.getWithDefault(Format.Json),
+    switch (
       options->Js.Dict.get("limit")->Option.map(Limit.fromString),
       options->Js.Dict.get("offset")->Option.map(Offset.fromString),
-    )
+      options->Js.Dict.get("start-at")->Option.map(StartAt.fromString),
+    ) {
+    | (_, Some(_), Some(_)) =>
+      Error.InvalidOption("Only one of limit and start-at can be specified as an option")->Invalid
+    | (Some(_), _, Some(_)) =>
+      Error.InvalidOption("Only one of limit and start-at can be specified as an option")->Invalid
+    | _ =>
+      Docs(
+        path->CollectionPath.fromString,
+        options
+        ->Js.Dict.get("format")
+        ->Option.map(Format.fromString)
+        ->Option.getWithDefault(Format.Json),
+        Pagination.from(
+          options->Js.Dict.get("limit")->Option.map(Limit.fromString),
+          options->Js.Dict.get("offset")->Option.map(Offset.fromString),
+          options->Js.Dict.get("start-at")->Option.map(StartAt.fromString),
+        ),
+      )
+    }
 
-  | list{"set", "help"} => Help(Some(Set(CollectionPath.empty(), Format.Json, Js.Json.null)))
+  | list{"set", "help"} => Set(CollectionPath.empty(), Format.Json, Js.Json.null)->Some->Help
   | list{"set", "code", path, ...rest} =>
     switch rest->getInput {
-    | Result.Ok(json) => Code(Set(path->CollectionPath.fromString, Format.Json, json))
-    | Result.Error(e) => Invalid(e)
+    | Result.Ok(json) => Set(path->CollectionPath.fromString, Format.Json, json)->Code
+    | Result.Error(e) => e->Invalid
     }
   | list{"set", path, ...rest} =>
     let options = rest->getOptions
@@ -128,28 +157,28 @@ let parse = (argv: list<string>): t => {
         )
       }
 
-    | Result.Error(e) => Invalid(e)
+    | Result.Error(e) => e->Invalid
     }
 
-  | list{"update", "help"} => Help(Some(Update(CollectionPath.empty(), Format.Json, Js.Json.null)))
+  | list{"update", "help"} => Update(CollectionPath.empty(), Format.Json, Js.Json.null)->Some->Help
   | list{"update", "code", path, ...rest} =>
     switch rest->getInput {
-    | Result.Ok(json) => Code(Update(path->CollectionPath.fromString, Format.Json, json))
-    | Result.Error(e) => Invalid(e)
+    | Result.Ok(json) => Update(path->CollectionPath.fromString, Format.Json, json)->Code
+    | Result.Error(e) => e->Invalid
     }
   | list{"update", path, ...rest} =>
     let options = rest->getOptions
     let maybeJsonString = switch (options->Js.Dict.get("json"), options->Js.Dict.get("stdin")) {
-    | (Some(json), _) => Some(json)
-    | (_, Some("true")) => Some(IO.inputStdin())
-    | _ => Some(IO.inputStdin())
+    | (Some(json), _) => json->Some
+    | (_, Some("true")) => IO.inputStdin()->Some
+    | _ => IO.inputStdin()->Some
     }
     let result = switch maybeJsonString {
     | Some(jsonString) =>
       try Result.Ok(Js.Json.parseExn(jsonString)) catch {
-      | _ => Result.Error(Error.InvalidJson)
+      | _ => Error.InvalidJson->Result.Error
       }
-    | None => Result.Error(Error.InvalidJson)
+    | None => Error.InvalidJson->Result.Error
     }
 
     switch result {
@@ -175,11 +204,11 @@ let parse = (argv: list<string>): t => {
         )
       }
 
-    | Result.Error(e) => Invalid(e)
+    | Result.Error(e) => e->Invalid
     }
 
-  | list{"delete", "help"} => Help(Some(Delete(CollectionPath.empty())))
-  | list{"delete", "code", path} => Code(Delete(path->CollectionPath.fromString))
+  | list{"delete", "help"} => CollectionPath.empty()->Delete->Some->Help
+  | list{"delete", "code", path} => path->CollectionPath.fromString->Delete->Code
   | list{"delete", path, ...rest} =>
     let options = rest->getOptions
     switch options->Js.Dict.get("dry-run")->Option.map(v => v == "true") {
@@ -191,18 +220,18 @@ let parse = (argv: list<string>): t => {
         ->Option.map(Format.fromString)
         ->Option.getWithDefault(Format.Json),
       )
-    | _ => Delete(path->CollectionPath.fromString)
+    | _ => path->CollectionPath.fromString->Delete
     }
-  | list{"list", "help"} => Help(Some(List(None)))
-  | list{"list", "code"} => Code(List(None))
-  | list{"list", "code", path} => Code(List(Some(path->CollectionPath.fromString)))
-  | list{"list", path} => List(Some(path->CollectionPath.fromString))
-  | list{"list"} => List(None)
+  | list{"list", "help"} => None->List->Some->Help
+  | list{"list", "code"} => None->List->Code
+  | list{"list", "code", path} => path->CollectionPath.fromString->Some->List->Code
+  | list{"list", path} => path->CollectionPath.fromString->Some->List
+  | list{"list"} => None->List
 
   | list{"version"} => Version
-  | list{"help"} => Help(None)
-  | list{cmd} => Invalid(Error.NotFoundCommand(Some(cmd)))
+  | list{"help"} => None->Help
+  | list{cmd} => cmd->Some->Error.NotFoundCommand->Invalid
   | list{} => ShowProject
-  | _ => Invalid(Error.NotFoundCommand(None))
+  | _ => None->Error.NotFoundCommand->Invalid
   }
 }

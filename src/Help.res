@@ -60,6 +60,7 @@ let docs =
     "Options:"->IO.green,
     "    -l, --limit=<limit> defaults to 30",
     "    -s, --offset=<offset> defaults to 0",
+    "    -a, --start-at=<startAt>",
     "    -f, --format=<json|table|csv>",
   ]->Js.Array2.joinWith("\n")
 

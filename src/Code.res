@@ -33,22 +33,13 @@ let get = t => [
   "console.log(doc.data());",
 ]
 
-let docs = (t, limit, offset) => {
-  let ref = switch (limit, offset) {
-  | (Some(limit), Some(offset)) =>
-    `${t->CollectionPath.toCode}.${limit->Limit.toCode}.${offset->Offset.toCode}`
-  | (Some(limit), None) => `${t->CollectionPath.toCode}.${limit->Limit.toCode}`
-  | (None, Some(offset)) => `${t->CollectionPath.toCode}.${offset->Offset.toCode}`
-  | (None, None) => t->CollectionPath.toCode
-  }
-  [
-    `const dataRef = ${ref};`,
-    "const snapshot = await dataRef.get();",
-    "snapshot.forEach(doc => {",
-    "  console.log(doc.id, '=>', doc.data());",
-    "});",
-  ]
-}
+let docs = (t, pagination) => [
+  `const dataRef = ${t->CollectionPath.toCode}.${pagination->Pagination.toCode};`,
+  "const snapshot = await dataRef.get();",
+  "snapshot.forEach(doc => {",
+  "  console.log(doc.id, '=>', doc.data());",
+  "});",
+]
 
 let set = (t, json) => [
   `const dataRef = ${t->CollectionPath.toCode};`,

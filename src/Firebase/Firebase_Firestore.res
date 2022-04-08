@@ -33,7 +33,8 @@ module Collection = {
   @send external offset: (t, int) => t = "offset"
   @send external limit: (t, int) => t = "limit"
   @send external orderBy: (t, string, string) => t = "orderBy"
-  @send external startAfter: (t, DocSnapshot.t) => t = "startAfter"
+  @send external startAfter: (t, string) => t = "startAfter"
+  @send external startAfter2: (t, string, string) => t = "startAfter"
   @send
   external where: (
     t,
