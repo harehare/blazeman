@@ -128,12 +128,9 @@ Order by:
 Options:
     -l, --limit=<limit> defaults to 30
     -s, --offset=<offset> defaults to 0
+    -a, --start-at=<startAt>
     -f, --format=<json|table|csv>
 ```
-
-## TODO :construction:
-
-- [ ] Support startAt
 
 ## License
 
